@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/*
+ * NASA brand palette, modeled on science.nasa.gov: black surfaces, white
+ * text, NASA Red for interactive accents, NASA Blue as a secondary accent.
+ * Contrast (WCAG 2.x):
+ *   nasa-red #FC3D21 on black          5.8:1  (links, focus ring, accents)
+ *   nasa-red on surface-raised #111    5.2:1
+ *   white on nasa-red-strong #D52B1E   5.0:1  (button text)
+ *   neutral-400 on black               8.1:1  (secondary text)
+ */
+@theme {
+  --color-nasa-red: #fc3d21;
+  --color-nasa-red-strong: #d52b1e;
+  --color-nasa-blue: #0b3d91;
+  --color-surface: #000000;
+  --color-surface-raised: #111111;
+  --color-border: #2a2a2a;
+}
+
+/* Fonts are loaded in app/layout.tsx; these map them to font-sans / font-mono. */
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+/* One consistent, high-contrast focus ring for every interactive element. */
+:focus-visible {
+  outline: 3px solid var(--color-nasa-red);
+  outline-offset: 3px;
+}
+
+main:focus {
+  outline: none;
+}
+
+/*
+ * Tailwind's reset gives buttons the default arrow cursor. Show the pointer
+ * on anything clickable. This lives in the base layer, so utilities such as
+ * `cursor-zoom-in` on the image trigger still override it.
+ */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
+
+/*
+ * Page transitions (see components/PageTransition.tsx).
+ * Old content leaves quickly; new content arrives slightly later and slower,
+ * so the two never compete for attention.
+ */
+::view-transition-old(.nav-forward) {
+  --slide-offset: -60px;
+  animation:
+    150ms ease-in both fade reverse,
+    400ms ease-in-out both slide reverse;
+}
+
+::view-transition-new(.nav-forward) {
+  --slide-offset: 60px;
+  animation:
+    210ms ease-out 150ms both fade,
+    400ms ease-in-out both slide;
+}
+
+::view-transition-old(.nav-back) {
+  --slide-offset: 60px;
+  animation:
+    150ms ease-in both fade reverse,
+    400ms ease-in-out both slide reverse;
+}
+
+::view-transition-new(.nav-back) {
+  --slide-offset: -60px;
+  animation:
+    210ms ease-out 150ms both fade,
+    400ms ease-in-out both slide;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide {
+  from {
+    translate: var(--slide-offset);
+  }
+  to {
+    translate: 0;
+  }
+}
+
+/* The header stays put while content slides beneath it. */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(site-header) {
+  display: none;
+}
+
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/* Let clicks reach the live page during a transition. */
+::view-transition {
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
